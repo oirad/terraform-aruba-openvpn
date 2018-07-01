@@ -1,0 +1,35 @@
+#!/bin/bash
+
+RELEASE=v0.1.1
+
+if [ ! -f bin/terraform-provider-arubacloud ];
+then
+  echo "Downloading ARUBACLOUD terraform plugin"
+  echo "=========================================="
+  cd bin
+  curl -L https://github.com/andrexus/terraform-provider-arubacloud/releases/download/${RELEASE}/linux_386_terraform-provider-arubacloud -o terraform-provider-arubacloud
+  chmod +x terraform-provider-arubacloud 
+  cd -
+  echo "=========================================="
+fi
+
+if [ ! -f .env ];
+then
+  echo "What is your arubacloud username?"
+  read -e ARUBA_USER
+  echo "TF_VAR_UN=${ARUBA_USER}"  > .env
+  echo "What is your arubacloud password?"
+  read -e ARUBA_PASS
+  echo "TF_VAR_PW=${ARUBA_PASS}" >> .env
+  echo "Which datacenter do you want to use?"
+  echo "1 -> DC1 -> Italy"
+  echo "2 -> DC2 -> Italy"
+  echo "3 -> DC3 -> Czech Republic"
+  echo "4 -> DC4 -> France"
+  echo "5 -> DC5 -> Germany"
+  echo "6 -> DC6 -> UK"
+  read -e ARUBA_DCNU
+  echo "TF_VAR_DC=${ARUBA_DCNU}" >> .env
+fi
+
+docker run --rm -t -i --env-file "$(pwd)/.env" -v "${HOME}/.ssh":/root/.ssh:ro -v $(pwd):/app -v "$(pwd)/.terraformrc":"/root/.terraformrc" -w /app hashicorp/terraform:light $* 
